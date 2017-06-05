@@ -17,6 +17,9 @@ class News extends Controller {
 
 	public $item = null;
 	public $limit = 2;
+	public $page = 1;
+	private $_offset = 0;
+	private $_total = 0;
 
 	/**
 	 * @param array $params
@@ -27,27 +30,36 @@ class News extends Controller {
 		if (empty($params)) {
 			$this->redirect("/{$this->name}/");
 		}
+		// После адреса страницы указан параметр
 		elseif (!empty($params[0])) {
-			$c = $this->core->xpdo->newQuery('Brevis\Model\News');
-			if (is_numeric($params[0])) {
-				$c->where(array('id' => $params[0]));
-			}
-			else {
-				$c->where(array('alias' => $params[0]));
-			}
-			if ($news = @$this->core->xpdo->getObject('Brevis\Model\News', $c)) {
-				$alias = $news->get('alias');
-				if (isset($params[1]) || $params[0] != $alias) {
-					$this->redirect("/{$this->name}/{$alias}");
+			// Указано число, значит это номер страницы
+			// Реагируем только на вторую страницу и дальше
+			if (is_numeric($params[0]) && $params[0] > 1) {
+				// После номера нет косой, или наоборот, указано что-то еще
+				if (!isset($params[1]) || !empty($params[1])) {
+					// Делаем редирект на канонический адрес
+					$this->redirect("/{$this->name}/$params[0]/");
 				}
-				else {
+				// В противном случае, сохраняем номер страницы и считаем,
+				// сколько строк нужно пропустить от начала в выборке
+				$this->page = (int)$params[0];
+				$this->_offset = ($this->page - 1) * $this->limit;
+			}
+			// Указано не число - это alias новости
+			else {
+				// Здесь всё осталось как раньше, только кода поменьше
+				$c = $this->core->xpdo->newQuery('Brevis\Model\News', array('alias' => $params[0]));
+				if ($news = @$this->core->xpdo->getObject('Brevis\Model\News', $c)) {
 					$this->item = $news;
 				}
 			}
-			else {
+			// Если не выбрана заметка и offset пустой, то делаем редирект в корень раздела
+			// Это будет в случае, если в параметрах указана какая-то ерунда
+			if (!$this->_offset && !$this->item) {
 				$this->redirect("/{$this->name}/");
 			}
 		}
+
 		return true;
 	}
 
@@ -70,6 +82,8 @@ class News extends Controller {
 				'title' => 'Новости',
 				'pagetitle' => 'Новости',
 				'items' => @$this->getItems(),
+				// Пагинация с нашими свойствами: total, page и limit
+				'pagination' => $this->getPagination($this->_total, $this->page, $this->limit),
 				'content' => '',
 			);
 		}
@@ -85,9 +99,16 @@ class News extends Controller {
 	public function getItems() {
 		$rows = array();
 		$c = $this->core->xpdo->newQuery('Brevis\Model\News');
+		// Считаем общее количество новостей
+		$this->_total = $this->core->xpdo->getCount('Brevis\Model\News');
+		// Если пропуск от начала больше, чем общее количество - указана несуществующая страница
+		if ($this->_offset >= $this->_total) {
+			// Редиректим в корень раздела
+			$this->redirect("/{$this->name}/");
+		}
 		$c->select($this->core->xpdo->getSelectColumns('Brevis\Model\News', 'News'));
 		$c->sortby('id', 'DESC');
-		$c->limit($this->limit);
+		$c->limit($this->limit, $this->_offset);
 		if ($c->prepare() && $c->stmt->execute()) {
 			while ($row = $c->stmt->fetch(\PDO::FETCH_ASSOC)) {
 				$cut = strpos($row['text'], "\n");

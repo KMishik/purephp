@@ -10,7 +10,8 @@
 		"php":">=5.3.0",
 		"fenom/fenom":	"2.*",
 		"xpdo/xpdo":	"3.0.*@dev",
-		"erusev/parsedown":	"1.5.*"
+		"erusev/parsedown":	"1.5.*",
+		"amstaffix/pagination": "^1.1"
 	},
 
 	"scripts":	{
