@@ -2,5 +2,6 @@
 vendor/
 composer.lock
 i.php
+Core/Cache/
 Core/Config/config.inc.php
 

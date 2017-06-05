@@ -22,7 +22,7 @@ class Test extends Controller {
 	 */
 	public function initialize(array $params = array()) {
 		if (empty($params)) {
-			$this->redirect('/test/');
+			$this->redirect("/{$this->name}/");
 		}
 		return true;
 	}
@@ -33,6 +33,26 @@ class Test extends Controller {
 	 * @return string
 	 */
 	public function run() {
+
+		//$manager = $this->core->xpdo->getManager();
+		//$manager->createObjectContainer('Brevis\Model\News');
+
+		$content = '';
+		$news = $this->core->xpdo->newObject('Brevis\Model\News');
+		$news->fromArray(array(
+			'pagetitle' => 'Новость 1',
+			'alias' => 'news1'
+		));
+		$news->save();
+		$content .= '<pre>' . print_r($news->toArray(), true) . '</pre>';
+
+		@$news = $this->core->xpdo->getObject('Brevis\Model\News', array('alias' => 'news1'));
+		$news->set('longtitle', rand());
+		$news->save();
+		$content .= '<pre>' . print_r($news->toArray(), true) . '</pre>';
+
+		//$news->remove();
+
 		return $this->template('test', array(
 			'title' => 'Тестовая страница',
 			'pagetitle' => 'Тестовая страница',

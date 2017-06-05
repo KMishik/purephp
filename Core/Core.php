@@ -11,6 +11,7 @@ namespace Brevis;
 use \Fenom as Fenom;
 use \xPDO\xPDO as xPDO;
 use \Exception as Exception;
+use \Parsedown as Parsedown;
 
 class Core {
 
@@ -21,6 +22,9 @@ class Core {
 
 	/** @var xPDO $xpdo  */
 	public $xpdo;
+
+	/** @var Parsedown $parser  */
+	public $parser;
 
 	/**
 	 * Конструктор класса
@@ -184,6 +188,20 @@ class Core {
 		// Возвращаем объект Fenom
 		return $this->fenom;
 	}
+
+	/**
+	 * Получение парсера текстов
+	 *
+	 * @return Parsedown
+	 */
+	public function getParser() {
+			if (!$this->parser) {
+					$this->parser = new Parsedown();
+				}
+
+ 		return $this->parser;
+ 	}
+
 	/**
 	 * Метод удаления директории с кэшем
 	 *
