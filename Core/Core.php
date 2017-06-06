@@ -127,6 +127,24 @@ class Core {
 
 
 	/**
+	 * Вывод ответа в установленном формате для всех Ajax запросов
+	 *
+	 * @param bool|true $success
+	 * @param string $message
+	 * @param array $data
+	 */
+	public function ajaxResponse($success = true, $message = '', array $data = array()) {
+		$response = array(
+			'success' => $success, // успех или ошибка операции
+			'message' => $message, // произвольное сообщение о статусе операции
+			'data' => $data, // массив с данными для работы, который выдал контроллер
+		);
+
+		exit(json_encode($response)); // прерываем всю работу и выдаём ответ в JSON
+	}
+
+
+	/**
 	 * Обработка входящего запроса
 	 *
 	 * @param $uri
@@ -145,6 +163,8 @@ class Core {
 			$controller = new $className($this); // Передавая экземпляр текущего класс в него - $this
 		}
 
+		$controller->isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest';
+
 		$initialize = $controller->initialize($request);
 		if ($initialize === true) {
 			$response = $controller->run();
@@ -156,7 +176,13 @@ class Core {
 			$response = 'Возникла неведомая ошибка при загрузке страницы';
 		}
 
-		echo $response;
+		if ($controller->isAjax) {
+			$this->ajaxResponse(false, 'Не могу обработать ajax запрос');
+		}
+		else {
+			echo $response;
+
+		}
 	}
 
 	/**

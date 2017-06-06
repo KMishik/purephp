@@ -30,6 +30,9 @@ class News extends Controller {
 		if (empty($params)) {
 			$this->redirect("/{$this->name}/");
 		}
+		elseif ($params[0] === '0') {
+			$this->redirect("/{$this->name}/");
+		}
 		// После адреса страницы указан параметр
 		elseif (!empty($params[0])) {
 			// Указано число, значит это номер страницы
@@ -55,7 +58,7 @@ class News extends Controller {
 			}
 			// Если не выбрана заметка и offset пустой, то делаем редирект в корень раздела
 			// Это будет в случае, если в параметрах указана какая-то ерунда
-			if (!$this->_offset && !$this->item) {
+			if (!$this->_offset && !$this->item && !$this->isAjax) {
 				$this->redirect("/{$this->name}/");
 			}
 		}
@@ -69,6 +72,23 @@ class News extends Controller {
 	 * @return string
 	 */
 	public function run() {
+
+		if ($this->isAjax) {
+			if ($this->item) {
+				$this->core->ajaxResponse(false, 'Контроллер News не принимает ajax в режиме показа отдельной новости');
+			}
+
+ 			$items = $this->getItems();
+ 			$pagination = $this->getPagination($this->_total, $this->page, $this->limit);
+			$this->core->ajaxResponse(true, '', array(
+	 				'items' => $this->template('_news', array('items' => $items), $this),
+	 				'pagination' => $this->template('_pagination', array('pagination' => $pagination), $this),
+	 				'total' => $this->_total,
+	 				'page' => $this->page,
+	 				'limit' => $this->limit,
+	 			));
+ 		}
+
 		if ($this->item) {
 			$data = array(
 				'title' => $this->item->get('pagetitle'),

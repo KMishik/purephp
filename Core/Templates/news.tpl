@@ -6,34 +6,16 @@
 
 {block 'content'}
 	{if $items}
-		{foreach $items as $item}
-			<div class="news">
-				<h3><a href="/news/{$item.alias}">{$item.pagetitle}</a></h3>
-				<p>{$item.text}</p>
-				{if $item.cut}
-					<a href="/news/{$item.alias}" class="btn btn-default">Читать далее →</a>
-				{/if}
+		<div id="news-wrapper">
+			<div id="news-items">
+				{insert '_news.tpl'}
 			</div>
-		{/foreach}
+		<div id="news-pagination">
 		{if $pagination}
-			<nav>
-				<ul class="pagination">
-					{foreach $pagination as $page => $type}
-						{switch $type}
-						{case 'first'}
-							<li><a href="/news/">«</a></li>
-						{case 'last'}
-							<li><a href="/news/{$page}/">»</a></li>
-						{case 'less', 'more'}
-						{case 'current'}
-							<li class="active"><a href="/news/{$page}/">{$page}</a></li>
-						{case default}
-							<li><a href="/news/{$page}/">{$page}</a></li>
-						{/switch}
-					{/foreach}
-				</ul>
-			</nav>
+			{insert '_pagination.tpl'}
 		{/if}
+		</div>
+		</div>
 	{else}
 		<a href="/news/">← Назад</a>
 		{parent}
