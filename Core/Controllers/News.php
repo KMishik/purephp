@@ -101,7 +101,7 @@ class News extends Controller {
 			$data = array(
 				'title' => 'Новости',
 				'pagetitle' => 'Новости',
-				'items' => @$this->getItems(),
+				'items' => $this->getItems(),
 				// Пагинация с нашими свойствами: total, page и limit
 				'pagination' => $this->getPagination($this->_total, $this->page, $this->limit),
 				'content' => '',
@@ -120,13 +120,13 @@ class News extends Controller {
 		$rows = array();
 		$c = $this->core->xpdo->newQuery('Brevis\Model\News');
 		// Считаем общее количество новостей
-		$this->_total = $this->core->xpdo->getCount('Brevis\Model\News');
+		$this->_total = @$this->core->xpdo->getCount('Brevis\Model\News');
 		// Если пропуск от начала больше, чем общее количество - указана несуществующая страница
 		if ($this->_offset >= $this->_total) {
 			// Редиректим в корень раздела
 			$this->redirect("/{$this->name}/");
 		}
-		$c->select($this->core->xpdo->getSelectColumns('Brevis\Model\News', 'News'));
+		$c->select(@$this->core->xpdo->getSelectColumns('Brevis\Model\News', 'News'));
 		$c->sortby('id', 'DESC');
 		$c->limit($this->limit, $this->_offset);
 		if ($c->prepare() && $c->stmt->execute()) {
